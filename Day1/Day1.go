@@ -80,7 +80,7 @@ func calculateSimilarity(leftside []int, rightside []int) int {
 func SolutionDay1() {
 	leftside, rightside := readFile("./Day1/Day1.txt")
 	distance := calulateDistance(leftside, rightside)
-	fmt.Println(distance)
+	fmt.Printf("Solution Day1 Part 1: %d\n", distance)
 	score := calculateSimilarity(leftside, rightside)
-	fmt.Println(score)
+	fmt.Printf("Solution Day1 Part 2: %d\n", score)
 }
