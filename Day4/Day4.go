@@ -8,26 +8,6 @@ import (
 	"strings"
 )
 
-type charInfo struct {
-	index      int
-	char       string
-	neighbours []int
-}
-
-func newCharInfo(i int, j int, mlength int, char string) charInfo {
-	c := charInfo{index: i*mlength + j, char: char}
-	tl := (i-1)*mlength + j - 1
-	t := (i-1)*mlength + j
-	tr := (i-1)*mlength + j + 1
-	l := i*mlength + j - 1
-	r := i*mlength + j + 1
-	bl := (i+1)*mlength + j - 1
-	b := (i+1)*mlength + j
-	br := (i+1)*mlength + j + 1
-	c.neighbours = []int{tl, t, tr, r, br, b, bl, l}
-	return c
-}
-
 func readFile(filename string) [][]string {
 	var ret [][]string
 	file, err := os.Open(filename)
@@ -42,113 +22,145 @@ func readFile(filename string) [][]string {
 	return ret
 }
 
-func searchAlgo(charInfoArray []charInfo, info charInfo, direction int, nextChar string) int {
-	if info.char == "X" {
-		if direction == -1 {
-			for i := 0; i < len(info.neighbours); i++ {
-				if info.neighbours[i] < 0 || info.neighbours[i] >= len(charInfoArray) {
-					continue
-				}
-				foundChar := charInfoArray[info.neighbours[i]].char
-				if foundChar == nextChar {
-					return searchAlgo(charInfoArray, charInfoArray[info.neighbours[i]], -1, "A")
-				}
-			}
-		} else {
-			if info.neighbours[direction] < 0 || info.neighbours[direction] >= len(charInfoArray) {
-				return 0
-			}
-			foundChar := charInfoArray[info.neighbours[direction]].char
-			if foundChar == nextChar {
-				return searchAlgo(charInfoArray, charInfoArray[info.neighbours[direction]], direction, "A")
-			}
-		}
-	}
-	if info.char == "M" {
-		if direction == -1 {
-			for i := 0; i < len(info.neighbours); i++ {
-				if info.neighbours[i] < 0 || info.neighbours[i] >= len(charInfoArray) {
-					continue
-				}
-				foundChar := charInfoArray[info.neighbours[i]].char
-				if foundChar == nextChar {
-					return searchAlgo(charInfoArray, charInfoArray[info.neighbours[i]], -1, "S")
-				}
-			}
-		} else {
-			if info.neighbours[direction] < 0 || info.neighbours[direction] >= len(charInfoArray) {
-				return 0
-			}
-			foundChar := charInfoArray[info.neighbours[direction]].char
-			if foundChar == nextChar {
-				return searchAlgo(charInfoArray, charInfoArray[info.neighbours[direction]], direction, "S")
-			}
-		}
+func searchForXMAS(charMatrix [][]string) int {
+	rows, cols := len(charMatrix), len(charMatrix[0])
+	count := 0
 
+	// Directions: right, down, diagonal down-right, diagonal down-left
+	directions := [][]int{
+		{0, 1},
+		{1, 0},
+		{1, 1},
+		{1, -1},
 	}
-	if info.char == "A" {
-		if direction == -1 {
-			for i := 0; i < len(info.neighbours); i++ {
-				if info.neighbours[i] < 0 || info.neighbours[i] >= len(charInfoArray) {
-					continue
+
+	for startRow := 0; startRow < rows; startRow++ {
+		for startCol := 0; startCol < cols; startCol++ {
+			for _, dir := range directions {
+				//forward
+				if checkXMASSequence(charMatrix, startRow, startCol, dir[0], dir[1]) {
+					count++
 				}
-				foundChar := charInfoArray[info.neighbours[i]].char
-				if foundChar == nextChar {
-					return 1
+
+				//reverse
+				if checkXMASSequence(charMatrix, startRow, startCol, -dir[0], -dir[1]) {
+					count++
 				}
-			}
-		} else {
-			if info.neighbours[direction] < 0 || info.neighbours[direction] >= len(charInfoArray) {
-				return 0
-			}
-			foundChar := charInfoArray[info.neighbours[direction]].char
-			if foundChar == nextChar {
-				return 1
 			}
 		}
 	}
-	return 0
+
+	return count
 }
 
-func createCharInfoArray(charMatrix [][]string) int {
-	var charInfoArray []charInfo
-	for i := 0; i < len(charMatrix); i++ {
-		for j := 0; j < len(charMatrix[i]); j++ {
-			var charI = newCharInfo(i, j, len(charMatrix[i]), charMatrix[i][j])
-			charInfoArray = append(charInfoArray, charI)
+func checkXMASSequence(charMatrix [][]string, row, col, rowStep, colStep int) bool {
+	rows, cols := len(charMatrix), len(charMatrix[0])
+
+	target := []string{"X", "M", "A", "S"}
+
+	if row+rowStep*3 < 0 || row+rowStep*3 >= rows ||
+		col+colStep*3 < 0 || col+colStep*3 >= cols {
+		return false
+	}
+
+	for i, char := range target {
+		checkRow := row + i*rowStep
+		checkCol := col + i*colStep
+
+		if checkRow < 0 || checkRow >= rows ||
+			checkCol < 0 || checkCol >= cols ||
+			charMatrix[checkRow][checkCol] != char {
+			return false
 		}
 	}
-	sum := 0
-	for i := 0; i < len(charInfoArray); i++ {
-		if charInfoArray[i].char == "X" {
-			for j := 0; j < 8; j++ {
-				sum += searchAlgo(charInfoArray, charInfoArray[i], j, "M")
+
+	return true
+}
+
+func searchForX_MAS(charMatrix [][]string) int {
+	rows, cols := len(charMatrix), len(charMatrix[0])
+	count := 0
+
+	for startRow := 1; startRow < rows-1; startRow++ {
+		for startCol := 1; startCol < cols-1; startCol++ {
+			ms := 0
+			ss := 0
+			var mCords [][]int
+			var sCords [][]int
+			if charMatrix[startRow][startCol] != "A" {
+				continue
+			}
+			//top left
+			if charMatrix[startRow-1][startCol-1] == "M" {
+				ms++
+				mCords = append(mCords, []int{startRow - 1, startCol - 1})
+			} else if charMatrix[startRow-1][startCol-1] == "S" {
+				ss++
+				sCords = append(sCords, []int{startRow - 1, startCol - 1})
+			}
+			//top right
+			if charMatrix[startRow-1][startCol+1] == "M" {
+				ms++
+				mCords = append(mCords, []int{startRow - 1, startCol + 1})
+			} else if charMatrix[startRow-1][startCol+1] == "S" {
+				ss++
+				sCords = append(sCords, []int{startRow - 1, startCol + 1})
+			}
+			//bottom left
+			if charMatrix[startRow+1][startCol-1] == "M" {
+				ms++
+				mCords = append(mCords, []int{startRow + 1, startCol - 1})
+			} else if charMatrix[startRow+1][startCol-1] == "S" {
+				ss++
+				sCords = append(sCords, []int{startRow + 1, startCol - 1})
+			}
+			//bottom right
+			if charMatrix[startRow+1][startCol+1] == "M" {
+				ms++
+				mCords = append(mCords, []int{startRow + 1, startCol + 1})
+			} else if charMatrix[startRow+1][startCol+1] == "S" {
+				ss++
+				sCords = append(sCords, []int{startRow + 1, startCol + 1})
+			}
+			if ms == 2 && ss == 2 {
+				//check if y or x cords are equal for m
+				if !(mCords[0][0] == mCords[1][0]) && !(mCords[0][1] == mCords[1][1]) {
+					continue
+				}
+				//check if y or x cords are equal for s
+				if !(sCords[0][0] == sCords[1][0]) && !(sCords[0][1] == sCords[1][1]) {
+					continue
+				}
+				count++
 			}
 		}
 	}
-	return sum
+
+	return count
 }
 
-// 3387 is to high 2567 is to high
+// 1948 is too high
 func SolutionDay4() {
 	charMatrix := readFile("./Day4/Day4.txt")
 	/*testMatrix := []string{
-		"....XXMAS.",
-		".SAMXMS...",
-		"...S..A...",
-		"..A.A.MS.X",
-		"XMASAMX.MM",
-		"X.....XA.A",
-		"S.S.S.S.SS",
-		".A.A.A.A.A",
-		"..M.M.M.MM",
-		".X.X.XMASX",
+		".M.S......",
+		"..A..MSMS.",
+		".M.S.MAA..",
+		"..A.ASMSM.",
+		".M.S.M....",
+		"..........",
+		"S.S.S.S.S.",
+		".A.A.A.A..",
+		"M.M.M.M.M.",
+		"..........",
 	}
 	var charMatrix [][]string
 	for i := 0; i < len(testMatrix); i++ {
 		charMatrix = append(charMatrix, strings.Split(testMatrix[i], ""))
 	}*/
 	//fmt.Printf("%+v\n", charMatrix)
-	occurences := createCharInfoArray(charMatrix)
-	fmt.Println(occurences)
+	occurences := searchForXMAS(charMatrix)
+	fmt.Printf("Solution Day4 Part 1: %d\n", occurences)
+	occurences2 := searchForX_MAS(charMatrix)
+	fmt.Printf("Solution Day4 Part 2: %d\n", occurences2)
 }
