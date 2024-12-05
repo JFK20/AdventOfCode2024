@@ -60,35 +60,27 @@ func findPath(nodes map[int]*Node, startNode *Node) []int {
 		nodeList = append(nodeList, node)
 	}
 
-	// Track visited nodes
 	visited := make(map[*Node]bool)
 
-	// Path to store the final route
 	path := []int{}
 
-	// Backtracking function
 	var backtrack func(current *Node, depth int) bool
 	backtrack = func(current *Node, depth int) bool {
-		// Mark current node as visited
 		visited[current] = true
 		path = append(path, current.value)
 
-		// If we've visited all nodes, we found a path
 		if depth == len(nodes)-1 {
 			return true
 		}
 
-		// Try each neighbour
 		for _, neighbour := range current.neighbours {
 			if !visited[neighbour] {
-				// Recursively explore this path
 				if backtrack(neighbour, depth+1) {
 					return true
 				}
 			}
 		}
 
-		// If no path found, backtrack
 		visited[current] = false
 		path = path[:len(path)-1]
 		return false
@@ -98,7 +90,6 @@ func findPath(nodes map[int]*Node, startNode *Node) []int {
 		return path
 	}
 
-	// No path found
 	return nil
 }
 
