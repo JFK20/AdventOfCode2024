@@ -78,8 +78,7 @@ func solve(numbers []int, combination []string) int {
 		} else if combination[i] == "|" {
 			leftStr := strconv.Itoa(calcResult)
 			rightStr := strconv.Itoa(numbers[i+1])
-			combined := strings.Join([]string{leftStr, rightStr}, "")
-			calcResult, _ = strconv.Atoi(combined)
+			calcResult, _ = strconv.Atoi(leftStr + rightStr)
 		}
 	}
 	return calcResult
