@@ -57,16 +57,39 @@ func getAntennas(matrix [][]rune) []antenna {
 	return antennas
 }
 
-func getAntiNode(pos1 helper.Vector2D, pos2 helper.Vector2D) (helper.Vector2D, bool) {
+func getAntiNode(pos1 helper.Vector2D, pos2 helper.Vector2D, solution bool) []helper.Vector2D {
+	found := make([]helper.Vector2D, 0)
 	newX := pos2.X + (pos2.X - pos1.X)
 	newY := pos2.Y + (pos2.Y - pos1.Y)
-	if newX >= 0 && newX < length && newY >= 0 && newY < width {
-		return helper.Vector2D{X: newX, Y: newY}, true
+	if solution {
+		found = append(found, helper.Vector2D{X: pos2.X, Y: pos2.Y})
+		for newX >= 0 && newX < length && newY >= 0 && newY < width {
+			found = append(found, helper.Vector2D{X: newX, Y: newY})
+			newX += pos2.X - pos1.X
+			newY += pos2.Y - pos1.Y
+		}
+	} else {
+		if newX >= 0 && newX < length && newY >= 0 && newY < width {
+			found = append(found, helper.Vector2D{X: newX, Y: newY})
+		}
 	}
-	return helper.Vector2D{}, false
+
+	return found
 }
 
-func matchAntennas(antennas []antenna) int {
+func addUnique(s *[]helper.Vector2D, vector helper.Vector2D) {
+	flag := false
+	for _, current := range *s {
+		if current == vector {
+			flag = true
+		}
+	}
+	if !flag {
+		*s = append(*s, vector)
+	}
+}
+
+func matchAntennas(antennas []antenna, solution bool) int {
 	antiNodes := make([]helper.Vector2D, 0)
 	for i := 0; i < len(antennas); i++ {
 		for j := 0; j < len(antennas); j++ {
@@ -74,31 +97,13 @@ func matchAntennas(antennas []antenna) int {
 				continue
 			}
 			if antennas[i].identifier == antennas[j].identifier {
-				newPos, found := getAntiNode(antennas[i].pos, antennas[j].pos)
-				if found {
-					flag := false
-					for _, anti := range antiNodes {
-						if anti == newPos {
-							flag = true
-						}
-					}
-					if !flag {
-						antiNodes = append(antiNodes, newPos)
-					}
-
+				newPoses := getAntiNode(antennas[i].pos, antennas[j].pos, solution)
+				for _, newPos := range newPoses {
+					addUnique(&antiNodes, newPos)
 				}
-				newPos, found = getAntiNode(antennas[j].pos, antennas[i].pos)
-				if found {
-					flag := false
-					for _, anti := range antiNodes {
-						if anti == newPos {
-							flag = true
-						}
-					}
-					if !flag {
-						antiNodes = append(antiNodes, newPos)
-					}
-
+				newPoses = getAntiNode(antennas[j].pos, antennas[i].pos, solution)
+				for _, newPos := range newPoses {
+					addUnique(&antiNodes, newPos)
 				}
 			}
 		}
@@ -108,9 +113,11 @@ func matchAntennas(antennas []antenna) int {
 
 func SolutionDay8() {
 	input := readFile("./Day8/Day8.txt")
-	printRuneMatrix(input)
+	//printRuneMatrix(input)
 	antennas := getAntennas(input)
-	amount := matchAntennas(antennas)
-	fmt.Println(amount)
+	amount := matchAntennas(antennas, false)
+	fmt.Printf("Solution Day8 Part 1: %d\n", amount)
+	amount2 := matchAntennas(antennas, true)
+	fmt.Printf("Solution Day8 Part 2: %d\n", amount2)
 
 }
