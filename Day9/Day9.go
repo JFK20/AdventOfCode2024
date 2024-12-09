@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"log"
+	"math"
 	"os"
 	"slices"
 	"strconv"
@@ -83,18 +84,19 @@ func compressData(input []int) []int {
 
 func getBlockLength(input []int) map[int][]int {
 	length := len(input)
-
 	blockLengths := map[int][]int{}
 
-	for i := length - 1; i >= 0; i-- {
+	for i := length - 1; i >= 0; {
 		blockLength := 0
 		foundNum := input[i]
 		if foundNum == -1 {
+			i--
 			continue
 		}
 		for j := length - 1; j >= 0; j-- {
 			if foundNum == input[j] {
 				blockLengths[foundNum] = append(blockLengths[foundNum], j)
+				slices.Sort(blockLengths[foundNum])
 				blockLength++
 				i--
 			}
@@ -134,30 +136,36 @@ func compressDataBlock(input []int) []int {
 	blockLengths := getBlockLength(input)
 	freeSpaces := getFreeSpace(input)
 	mapLength := (inputLength - 1) / 2
-	for i := mapLength; i > 0; i-- {
+	for i := mapLength; i >= 0; i-- {
+
 		currentBlockLength := len(blockLengths[i])
-		smallestPossibleFit := -1
+		smallestPossibleFit := math.MaxInt
+		blockLength := -1
 		for j := currentBlockLength; j <= 9; j++ {
 			if len(freeSpaces[j]) > 0 {
-				smallestPossibleFit = freeSpaces[j][0]
-				freeSpaces[j] = freeSpaces[j][1:]
-				remaningSpace := j - currentBlockLength
-				newIndex := smallestPossibleFit + currentBlockLength
-				freeSpaces[remaningSpace] = append(freeSpaces[remaningSpace], newIndex)
-				slices.Sort(freeSpaces[remaningSpace])
+				if freeSpaces[j][0] < smallestPossibleFit {
+					smallestPossibleFit = freeSpaces[j][0]
+					blockLength = j
+				}
 			}
 		}
-		if smallestPossibleFit == -1 {
+		if smallestPossibleFit == math.MaxInt {
 			continue
-		}
-		for j := smallestPossibleFit; j < smallestPossibleFit+currentBlockLength; j++ {
-			ret[j] = i
-		}
-		for j := 0; j < len(blockLengths[i]); j++ {
-			ret[blockLengths[i][j]] = -1
+		} else if blockLength != -1 && smallestPossibleFit < blockLengths[i][0] {
+			//update the freespaces map
+			freeSpaces[blockLength] = freeSpaces[blockLength][1:]
+			remaningSpace := blockLength - currentBlockLength
+			newIndex := smallestPossibleFit + currentBlockLength
+			freeSpaces[remaningSpace] = append(freeSpaces[remaningSpace], newIndex)
+			slices.Sort(freeSpaces[remaningSpace])
+			for j := smallestPossibleFit; j < smallestPossibleFit+currentBlockLength; j++ {
+				ret[j] = i
+			}
+			for j := 0; j < len(blockLengths[i]); j++ {
+				ret[blockLengths[i][j]] = -1
+			}
 		}
 	}
-
 	return ret
 }
 
@@ -172,17 +180,13 @@ func calculateChecksum(input []int) uint64 {
 	return check
 }
 
-// 14477716715259 to high
 func SolutionDay9() {
-	input := readFile("./Day9/Day9Test.txt")
+	input := readFile("./Day9/Day9.txt")
 	data := convertData(input)
-	fmt.Println(data)
 	compressedData := compressData(data)
-	fmt.Println(compressedData)
 	checksum := calculateChecksum(compressedData)
 	fmt.Printf("Solution Day9 Part 1: %d\n", checksum)
 	compressedDataBlock := compressDataBlock(data)
-	fmt.Println(compressedDataBlock)
 	checksum2 := calculateChecksum(compressedDataBlock)
 	fmt.Printf("Solution Day9 Part 2: %d\n", checksum2)
 }

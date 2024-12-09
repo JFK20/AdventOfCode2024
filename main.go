@@ -9,6 +9,7 @@ import (
 	"AdventOfCode/Day6"
 	"AdventOfCode/Day7"
 	"AdventOfCode/Day8"
+	"AdventOfCode/Day9"
 	"fmt"
 	"time"
 )
@@ -23,6 +24,7 @@ func main() {
 	Day6.SolutionDay6()
 	Day7.SolutionDay7()
 	Day8.SolutionDay8()
+	Day9.SolutionDay9()
 	elapsed := time.Since(start)
 	fmt.Printf("AoC took %s", elapsed)
 }
