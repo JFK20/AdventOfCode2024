@@ -37,7 +37,6 @@ func getLength(input string) int {
 }
 
 func convertData(input string) []int {
-
 	ret := make([]int, getLength(input))
 	id := 0
 	retIndex := 0
@@ -78,7 +77,6 @@ func compressData(input []int) []int {
 	for i := left; i < len(ret); i++ {
 		ret[i] = -1
 	}
-
 	return ret
 }
 
@@ -107,7 +105,6 @@ func getBlockLength(input []int) map[int][]int {
 
 func getFreeSpace(input []int) map[int][]int {
 	length := len(input)
-
 	freeSpaces := map[int][]int{}
 
 	for i := length - 1; i >= 0; i-- {
