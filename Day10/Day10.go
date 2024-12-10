@@ -31,7 +31,10 @@ func readFile(filename string) map[helper.Vector2D]int {
 	return ret
 }
 
-func walk(topos map[helper.Vector2D]int, startPos helper.Vector2D, startValue int, visited map[helper.Vector2D]bool) int {
+func walk(topos map[helper.Vector2D]int, startPos helper.Vector2D, startValue int, visited map[helper.Vector2D]bool, flag bool) int {
+	if flag {
+		visited = make(map[helper.Vector2D]bool)
+	}
 	if startValue == 9 {
 		if visited[startPos] {
 			return 0
@@ -44,7 +47,7 @@ func walk(topos map[helper.Vector2D]int, startPos helper.Vector2D, startValue in
 	newValue := startValue + 1
 	for _, neighbour := range allNeighbours {
 		if topos[neighbour] == newValue {
-			found += walk(topos, neighbour, newValue, visited)
+			found += walk(topos, neighbour, newValue, visited, flag)
 		} else {
 			continue
 		}
@@ -52,14 +55,13 @@ func walk(topos map[helper.Vector2D]int, startPos helper.Vector2D, startValue in
 	return found
 }
 
-func walkAll(topos map[helper.Vector2D]int) int {
+func walkAll(topos map[helper.Vector2D]int, flag bool) int {
 	sum := 0
 
 	for pos, v := range topos {
 		if v == 0 {
 			visited := make(map[helper.Vector2D]bool)
-			sum += walk(topos, pos, v, visited)
-			fmt.Printf("%d for pos X:%d Y:%d\n", sum, pos.X, pos.Y)
+			sum += walk(topos, pos, v, visited, flag)
 		}
 	}
 	return sum
@@ -67,8 +69,8 @@ func walkAll(topos map[helper.Vector2D]int) int {
 
 func SolutionDay10() {
 	input := readFile("./Day10/Day10.txt")
-	fmt.Println(input)
-	sum := walkAll(input)
-	fmt.Printf("Solution Day9 Part 1: %d\n", sum)
-	//fmt.Printf("Solution Day9 Part 2: %d\n", checksum2)
+	sum := walkAll(input, false)
+	fmt.Printf("Solution Day10 Part 1: %d\n", sum)
+	sum2 := walkAll(input, true)
+	fmt.Printf("Solution Day10 Part 2: %d\n", sum2)
 }
