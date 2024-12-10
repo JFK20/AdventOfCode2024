@@ -25,3 +25,11 @@ func (vec *Vector2D) RotateVector2D() {
 	vec.X = -vec.Y
 	vec.Y = tmp
 }
+
+func (vec *Vector2D) GetAllNeighbours() []Vector2D {
+	right := Vector2D{vec.X + 1, vec.Y}
+	left := Vector2D{vec.X - 1, vec.Y}
+	top := Vector2D{vec.X, vec.Y + 1}
+	bottom := Vector2D{vec.X, vec.Y - 1}
+	return []Vector2D{right, left, top, bottom}
+}
