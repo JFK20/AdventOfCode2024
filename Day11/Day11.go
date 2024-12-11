@@ -10,7 +10,9 @@ import (
 	"sync"
 )
 
-var memo = make(map[int]int)
+// der erste key ist der stone
+var memo = make(map[int]map[int][]int) // Cache resulting stones for stone and iteration
+var memoMu sync.Mutex
 
 func readFile(filename string) []int {
 	ret := make([]int, 0)
@@ -51,71 +53,34 @@ func rules(stone int) []int {
 	}
 }
 
-func findEndStones(stone int, iters int) int {
-	stones := make([]int, 0)
-	stonesAfter := make([]int, 0)
-	stones = append(stones, stone)
-	for i := 0; i < iters; i++ {
-		for j := 0; j < len(stones); j++ {
-			/*if memo[stones[j]] != 0 {
-				return memo[stones[j]]
-			}*/
-			stonesAfter = append(stonesAfter, rules(stones[j])...)
-			//memo[stones[j]] = len(stonesAfter)
-		}
-		stones = stonesAfter
-		stonesAfter = make([]int, 0)
-	}
-	return len(stones)
-}
-
 func findAllEndStones(stones []int, iters int) int {
-	sum := 0
-	endStones := make([]int, 0)
-
-	var wg sync.WaitGroup
-	mu := sync.Mutex{}
-	results := make(chan []int, len(stones))
-	counts := make(chan int, len(stones))
-
-	for _, stone := range stones {
-		wg.Add(1)
-		go func(stone int) {
-			defer wg.Done()
-			count := findEndStones(stone, iters)
-			counts <- count
-		}(stone)
+	amountByValue := make(map[int]int)
+	for _, v := range stones {
+		amountByValue[v] = amountByValue[v] + 1
 	}
+	for i := 0; i < iters; i++ {
+		resultMap := make(map[int]int)
+		for k, v := range amountByValue {
+			amount := v
 
-	// Close channels once all goroutines are done.
-	go func() {
-		wg.Wait()
-		close(counts)
-		close(results)
-	}()
-
-	// Aggregate results from channels.
-	for count := range counts {
-		mu.Lock()
-		sum += count
-		mu.Unlock()
+			a := rules(k)
+			for _, val := range a {
+				resultMap[val] = resultMap[val] + amount
+			}
+		}
+		amountByValue = resultMap
 	}
-
-	for newStones := range results {
-		mu.Lock()
-		endStones = append(endStones, newStones...)
-		mu.Unlock()
+	ret := 0
+	for _, v := range amountByValue {
+		ret += v
 	}
-
-	return sum
+	return ret
 }
 
 func SolutionDay11() {
-	input := readFile("./Day11/Day11Test.txt")
+	input := readFile("./Day11/Day11.txt")
 	sum := findAllEndStones(input, 25)
 	fmt.Printf("Solution Day11 Part 1: %d\n", sum)
-	//sum, endStones = findAllEndStones(endStones, 25)
-	//fmt.Println("50 Iters Completed")
-	//sum, endStones = findAllEndStones(endStones, 25)
-	//fmt.Printf("Solution Day11 Part 2: %d\n", sum)
+	sum2 := findAllEndStones(input, 75)
+	fmt.Printf("Solution Day11 Part 2: %d\n", sum2)
 }
