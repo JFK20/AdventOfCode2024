@@ -1,7 +1,7 @@
 package Day10
 
 import (
-	"AdventOfCode/helper"
+	"AdventOfCode/vec"
 	"bufio"
 	"fmt"
 	"log"
@@ -10,8 +10,8 @@ import (
 	"strings"
 )
 
-func readFile(filename string) map[helper.Vector2D]int {
-	ret := make(map[helper.Vector2D]int)
+func readFile(filename string) map[vec.Vector2D]int {
+	ret := make(map[vec.Vector2D]int)
 	file, err := os.Open(filename)
 	if err != nil {
 		log.Fatal("Problem opening File", err)
@@ -23,7 +23,7 @@ func readFile(filename string) map[helper.Vector2D]int {
 		splitted := strings.Split(scanner.Text(), "")
 		for i, v := range splitted {
 			num, _ := strconv.Atoi(v)
-			ret[helper.Vector2D{X: i, Y: y}] = num
+			ret[vec.Vector2D{X: i, Y: y}] = num
 		}
 		y++
 	}
@@ -31,9 +31,9 @@ func readFile(filename string) map[helper.Vector2D]int {
 	return ret
 }
 
-func walk(topos map[helper.Vector2D]int, startPos helper.Vector2D, startValue int, visited map[helper.Vector2D]bool, flag bool) int {
+func walk(topos map[vec.Vector2D]int, startPos vec.Vector2D, startValue int, visited map[vec.Vector2D]bool, flag bool) int {
 	if flag {
-		visited = make(map[helper.Vector2D]bool)
+		visited = make(map[vec.Vector2D]bool)
 	}
 	if startValue == 9 {
 		if visited[startPos] {
@@ -55,12 +55,12 @@ func walk(topos map[helper.Vector2D]int, startPos helper.Vector2D, startValue in
 	return found
 }
 
-func walkAll(topos map[helper.Vector2D]int, flag bool) int {
+func walkAll(topos map[vec.Vector2D]int, flag bool) int {
 	sum := 0
 
 	for pos, v := range topos {
 		if v == 0 {
-			visited := make(map[helper.Vector2D]bool)
+			visited := make(map[vec.Vector2D]bool)
 			sum += walk(topos, pos, v, visited, flag)
 		}
 	}

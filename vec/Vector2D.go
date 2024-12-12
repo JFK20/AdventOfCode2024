@@ -1,4 +1,4 @@
-package helper
+package vec
 
 type Vector2D struct {
 	X int
@@ -32,4 +32,14 @@ func (vec *Vector2D) GetAllNeighbours() []Vector2D {
 	top := Vector2D{vec.X, vec.Y + 1}
 	bottom := Vector2D{vec.X, vec.Y - 1}
 	return []Vector2D{right, left, top, bottom}
+}
+
+func (vec *Vector2D) IsInBounds(bounds Vector2D) bool {
+	if vec.X >= bounds.X || vec.Y >= bounds.Y {
+		return false
+	}
+	if vec.X < 0 || vec.Y < 0 {
+		return false
+	}
+	return true
 }
