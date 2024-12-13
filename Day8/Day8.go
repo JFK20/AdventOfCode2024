@@ -1,7 +1,7 @@
 package Day8
 
 import (
-	"AdventOfCode/vec"
+	"AdventOfCode/mathUtil"
 	"bufio"
 	"fmt"
 	"log"
@@ -22,7 +22,7 @@ func printRuneMatrix(matrix [][]rune) {
 
 type antenna struct {
 	identifier rune
-	pos        vec.Vector2D
+	pos        mathUtil.Vector2D[int]
 }
 
 func readFile(filename string) [][]rune {
@@ -50,34 +50,34 @@ func getAntennas(matrix [][]rune) []antenna {
 	for i := 0; i < len(matrix); i++ {
 		for j := 0; j < len(matrix[i]); j++ {
 			if matrix[i][j] != '.' {
-				antennas = append(antennas, antenna{identifier: matrix[i][j], pos: vec.Vector2D{X: i, Y: j}})
+				antennas = append(antennas, antenna{identifier: matrix[i][j], pos: mathUtil.Vector2D[int]{X: i, Y: j}})
 			}
 		}
 	}
 	return antennas
 }
 
-func getAntiNode(pos1 vec.Vector2D, pos2 vec.Vector2D, solution bool) []vec.Vector2D {
-	found := make([]vec.Vector2D, 0)
+func getAntiNode(pos1 mathUtil.Vector2D[int], pos2 mathUtil.Vector2D[int], solution bool) []mathUtil.Vector2D[int] {
+	found := make([]mathUtil.Vector2D[int], 0)
 	newX := pos2.X + (pos2.X - pos1.X)
 	newY := pos2.Y + (pos2.Y - pos1.Y)
 	if solution {
-		found = append(found, vec.Vector2D{X: pos2.X, Y: pos2.Y})
+		found = append(found, mathUtil.Vector2D[int]{X: pos2.X, Y: pos2.Y})
 		for newX >= 0 && newX < length && newY >= 0 && newY < width {
-			found = append(found, vec.Vector2D{X: newX, Y: newY})
+			found = append(found, mathUtil.Vector2D[int]{X: newX, Y: newY})
 			newX += pos2.X - pos1.X
 			newY += pos2.Y - pos1.Y
 		}
 	} else {
 		if newX >= 0 && newX < length && newY >= 0 && newY < width {
-			found = append(found, vec.Vector2D{X: newX, Y: newY})
+			found = append(found, mathUtil.Vector2D[int]{X: newX, Y: newY})
 		}
 	}
 
 	return found
 }
 
-func addUnique(s *[]vec.Vector2D, vector vec.Vector2D) {
+func addUnique(s *[]mathUtil.Vector2D[int], vector mathUtil.Vector2D[int]) {
 	flag := false
 	for _, current := range *s {
 		if current == vector {
@@ -90,7 +90,7 @@ func addUnique(s *[]vec.Vector2D, vector vec.Vector2D) {
 }
 
 func matchAntennas(antennas []antenna, solution bool) int {
-	antiNodes := make([]vec.Vector2D, 0)
+	antiNodes := make([]mathUtil.Vector2D[int], 0)
 	for i := 0; i < len(antennas); i++ {
 		for j := 0; j < len(antennas); j++ {
 			if i == j {

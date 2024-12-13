@@ -1,25 +1,14 @@
 package main
 
 import (
-	"AdventOfCode/Day1"
-	"AdventOfCode/Day10"
-	"AdventOfCode/Day11"
-	"AdventOfCode/Day12"
-	"AdventOfCode/Day2"
-	"AdventOfCode/Day3"
-	"AdventOfCode/Day4"
-	"AdventOfCode/Day5"
-	"AdventOfCode/Day6"
-	"AdventOfCode/Day7"
-	"AdventOfCode/Day8"
-	"AdventOfCode/Day9"
+	"AdventOfCode/Day13"
 	"fmt"
 	"time"
 )
 
 func main() {
 	start := time.Now()
-	Day1.SolutionDay1()
+	/*Day1.SolutionDay1()
 	Day2.SolutionDay2()
 	Day3.SolutionDay3()
 	Day4.SolutionDay4()
@@ -30,7 +19,8 @@ func main() {
 	Day9.SolutionDay9()
 	Day10.SolutionDay10()
 	Day11.SolutionDay11()
-	Day12.SolutionDay12()
+	Day12.SolutionDay12()*/
+	Day13.SolutionDay13()
 	elapsed := time.Since(start)
 	fmt.Printf("AoC took %s", elapsed)
 }

@@ -1,7 +1,7 @@
 package Day12
 
 import (
-	"AdventOfCode/vec"
+	"AdventOfCode/mathUtil"
 	"bufio"
 	"fmt"
 	"log"
@@ -11,7 +11,7 @@ import (
 
 var length int
 var width int
-var visited []vec.Vector2D
+var visited []mathUtil.Vector2D[int]
 
 func readFile(filename string) [][]rune {
 	ret := make([][]rune, 0)
@@ -34,14 +34,14 @@ func readFile(filename string) [][]rune {
 }
 
 func findCosts(garden [][]rune) int {
-	allVisited := make([]vec.Vector2D, 0)
+	allVisited := make([]mathUtil.Vector2D[int], 0)
 	sum := 0
 
 	for y := range garden {
 		for x := range garden {
-			pos := vec.Vector2D{X: x, Y: y}
+			pos := mathUtil.Vector2D[int]{X: x, Y: y}
 			if !slices.Contains(allVisited, pos) {
-				visited = make([]vec.Vector2D, 0)
+				visited = make([]mathUtil.Vector2D[int], 0)
 				a, b := regionCircumference(garden, pos)
 				sum += a * b
 				allVisited = append(allVisited, visited...)
@@ -51,15 +51,15 @@ func findCosts(garden [][]rune) int {
 	return sum
 }
 
-func regionCircumference(garden [][]rune, pos vec.Vector2D) (int, int) {
+func regionCircumference(garden [][]rune, pos mathUtil.Vector2D[int]) (int, int) {
 	if slices.Contains(visited, pos) {
 		return 0, len(visited)
 	}
 	visited = append(visited, pos)
 
-	bounds := vec.Vector2D{X: length, Y: width}
+	bounds := mathUtil.Vector2D[int]{X: length, Y: width}
 	regionSymbol := garden[pos.Y][pos.X]
-	neighbours := make([]vec.Vector2D, 0)
+	neighbours := make([]mathUtil.Vector2D[int], 0)
 	circumference := 4
 	for _, v := range pos.GetAllNeighbours() {
 		if v.IsInBounds(bounds) && garden[v.Y][v.X] == regionSymbol {
@@ -77,9 +77,9 @@ func regionCircumference(garden [][]rune, pos vec.Vector2D) (int, int) {
 	return circumference, len(visited)
 }
 
-func checkAll4(input [][]rune, current vec.Vector2D) []vec.Vector2D {
-	sameAround := []vec.Vector2D{}
-	bounds := vec.Vector2D{X: length, Y: width}
+func checkAll4(input [][]rune, current mathUtil.Vector2D[int]) []mathUtil.Vector2D[int] {
+	sameAround := []mathUtil.Vector2D[int]{}
+	bounds := mathUtil.Vector2D[int]{X: length, Y: width}
 	if !current.IsInBounds(bounds) {
 		return sameAround
 	}
@@ -100,12 +100,12 @@ type polynomial struct {
 
 func alternativeSolution(input [][]rune) int {
 	cost2 := 0
-	visitedCoordinates := make(map[vec.Vector2D]struct{})
+	visitedCoordinates := make(map[mathUtil.Vector2D[int]]struct{})
 
 	for j, _ := range input {
 		for i, _ := range input[j] {
-			if _, ok := visitedCoordinates[vec.Vector2D{X: i, Y: j}]; !ok {
-				next := []vec.Vector2D{{i, j}}
+			if _, ok := visitedCoordinates[mathUtil.Vector2D[int]{X: i, Y: j}]; !ok {
+				next := []mathUtil.Vector2D[int]{{i, j}}
 				shape := polynomial{}
 				for len(next) != 0 {
 					newShape, traverseNext := findAllGardensNonRecursively(input, next[0], shape, visitedCoordinates)
@@ -120,7 +120,7 @@ func alternativeSolution(input [][]rune) int {
 	return cost2
 }
 
-func checkCorners(input [][]rune, current vec.Vector2D) int {
+func checkCorners(input [][]rune, current mathUtil.Vector2D[int]) int {
 	count := 0
 	gardenType := input[current.Y][current.X]
 	x, y := current.X, current.Y
@@ -203,9 +203,9 @@ func checkCorners(input [][]rune, current vec.Vector2D) int {
 	return count
 }
 
-func findAllGardensNonRecursively(input [][]rune, current vec.Vector2D, shape polynomial, visited map[vec.Vector2D]struct{}) (polynomial, []vec.Vector2D) {
+func findAllGardensNonRecursively(input [][]rune, current mathUtil.Vector2D[int], shape polynomial, visited map[mathUtil.Vector2D[int]]struct{}) (polynomial, []mathUtil.Vector2D[int]) {
 	if _, ok := visited[current]; ok {
-		return shape, []vec.Vector2D{}
+		return shape, []mathUtil.Vector2D[int]{}
 	}
 
 	checkNext := checkAll4(input, current)
@@ -217,9 +217,9 @@ func findAllGardensNonRecursively(input [][]rune, current vec.Vector2D, shape po
 			shape = polynomial{
 				area: 1, sides: 4,
 			}
-			return shape, []vec.Vector2D{}
+			return shape, []mathUtil.Vector2D[int]{}
 		}
-		return shape, []vec.Vector2D{}
+		return shape, []mathUtil.Vector2D[int]{}
 	}
 
 	shape.area += 1
@@ -232,7 +232,7 @@ func findAllGardensNonRecursively(input [][]rune, current vec.Vector2D, shape po
 func SolutionDay12() {
 	input := readFile("./Day12/Day12.txt")
 	cost := findCosts(input)
-	fmt.Printf("Solution Day11 Part 1: %d\n", cost)
+	fmt.Printf("Solution Day12 Part 1: %d\n", cost)
 	cost2 := alternativeSolution(input)
-	fmt.Printf("Solution Day11 Part 2: %d\n", cost2)
+	fmt.Printf("Solution Day12 Part 2: %d\n", cost2)
 }
