@@ -83,11 +83,12 @@ func calcCost(sols []mathUtil.Vector2D[int]) int {
 }
 
 // 34731664719093 too low
+// 875318608908 too low
 func SolutionDay13() {
-	input := readFile("./Day13/Day13Text.txt", 0)
+	input := readFile("./Day13/Day13.txt", 0)
 	solution := getAllSolution(input)
 	fmt.Printf("Solution Day13 Part 1: %d\n", calcCost(solution))
-	input2 := readFile("./Day13/Day13Text.txt", 10e12)
+	input2 := readFile("./Day13/Day13.txt", 10e12)
 	solution2 := getAllSolution(input2)
 	fmt.Printf("Solution Day13 Part 1: %d\n", calcCost(solution2))
 }

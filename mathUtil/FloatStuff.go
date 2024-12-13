@@ -6,7 +6,7 @@ import (
 )
 
 func IsNearInt(value float64) bool {
-	epsilon := 1e-9
+	epsilon := 1e-4
 	nearestInt := math.Round(value)
 	return math.Abs(value-nearestInt) <= epsilon
 }
