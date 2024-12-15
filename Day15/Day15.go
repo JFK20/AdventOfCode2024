@@ -52,6 +52,45 @@ func printGrid(gridMap map[mathUtil.Vector2D[int]]rune) {
 	}
 }
 
+func gridToSlice(gridMap map[mathUtil.Vector2D[int]]rune) [][]rune {
+	// Determine grid bounds
+	minX, minY := math.MaxInt, math.MaxInt
+	maxX, maxY := math.MinInt, math.MinInt
+
+	for vec := range gridMap {
+		if vec.X < minX {
+			minX = vec.X
+		}
+		if vec.Y < minY {
+			minY = vec.Y
+		}
+		if vec.X > maxX {
+			maxX = vec.X
+		}
+		if vec.Y > maxY {
+			maxY = vec.Y
+		}
+	}
+
+	// Create a 2D slice to represent the grid
+	width := maxX - minX + 1
+	height := maxY - minY + 1
+	grid := make([][]rune, height)
+	for i := range grid {
+		grid[i] = make([]rune, width)
+		for j := range grid[i] {
+			grid[i][j] = '.' // Default character
+		}
+	}
+
+	// Populate the grid with runes from the map
+	for vec, r := range gridMap {
+		grid[vec.Y-minY][vec.X-minX] = r
+	}
+
+	return grid
+}
+
 func readFile(filename string) (map[mathUtil.Vector2D[int]]rune, []rune) {
 	grid := make(map[mathUtil.Vector2D[int]]rune)
 	moves := make([]rune, 0)
@@ -172,89 +211,108 @@ func move(grid map[mathUtil.Vector2D[int]]rune, symbol rune, pos *mathUtil.Vecto
 	return grid, true
 }
 
-var visted map[mathUtil.Vector2D[int]]bool = make(map[mathUtil.Vector2D[int]]bool)
-
-func move2(grid map[mathUtil.Vector2D[int]]rune, symbol rune, pos *mathUtil.Vector2D[int], m rune) (map[mathUtil.Vector2D[int]]rune, bool) {
-	if m == '<' || m == '>' {
-		var direction = mathUtil.Vector2D[int]{X: 0, Y: 0}
-		if m == '<' {
-			direction.X -= 1
-		} else {
-			direction.X += 1
-		}
-		newPos := mathUtil.AddVector2D(*pos, direction)
-		if grid[newPos] == '#' {
-			return grid, false
-		}
-		if grid[newPos] == '.' {
-			grid[*pos] = '.'
-			*pos = mathUtil.AddVector2D(*pos, direction)
-			grid[*pos] = symbol
-			return grid, true
-		}
-		if grid[newPos] == '[' || grid[newPos] == ']' {
-			newGrid, suc := move2(grid, grid[newPos], &newPos, m)
-			if !suc {
-				return grid, false
-			} else {
-				grid = newGrid
-				grid[*pos] = '.'
-				*pos = mathUtil.AddVector2D(*pos, direction)
-				grid[*pos] = symbol
-				return grid, true
+func findStartPos2(warehouse [][]rune) mathUtil.Vector2D[int] {
+	for y, l := range warehouse {
+		for x, r := range l {
+			if r == '@' {
+				return mathUtil.Vector2D[int]{x, y}
 			}
-		}
-		return grid, true
-	} else if m == '^' || m == 'v' {
-		newPos := *pos
-		if m == '^' {
-			newPos.Y -= 1
-		} else {
-			newPos.Y += 1
-		}
-		if grid[newPos] == '#' {
-			return grid, false
-		}
-		if grid[newPos] == '.' {
-			grid[*pos] = '.'
-			*pos = newPos
-			grid[*pos] = symbol
-			return grid, true
-		}
-		if grid[newPos] == '[' || grid[newPos] == ']' {
-			visted[newPos] = true
-			newGrid, suc := move2(grid, grid[newPos], &newPos, m)
-			if !suc {
-				return grid, false
-			} else {
-				newGrid[*pos] = '.'
-				*pos = newPos
-				newGrid[*pos] = symbol
-			}
-			otherPos := newPos
-			if newGrid[newPos] == '[' {
-				otherPos.X += 1
-			} else {
-				otherPos.X -= 1
-			}
-			if !visted[otherPos] {
-				visted[otherPos] = true
-				newGrid, suc = move2(newGrid, newGrid[otherPos], &otherPos, m)
-				if !suc {
-					return grid, false
-				} else {
-					newGrid[*pos] = '.'
-					*pos = newPos
-					newGrid[*pos] = symbol
-				}
-			}
-
-			grid = newGrid
-			return grid, true
 		}
 	}
-	visted = make(map[mathUtil.Vector2D[int]]bool)
-	return grid, true
+	return mathUtil.Vector2D[int]{}
+}
+
+func runeToDirVec(r rune) mathUtil.Vector2D[int] {
+	if r == '<' {
+		return mathUtil.Vector2D[int]{-1, 0}
+	}
+	if r == '>' {
+		return mathUtil.Vector2D[int]{1, 0}
+	}
+	if r == '^' {
+		return mathUtil.Vector2D[int]{0, -1}
+	}
+	if r == 'v' {
+		return mathUtil.Vector2D[int]{0, 1}
+	}
+
+	return mathUtil.Vector2D[int]{}
+}
+
+func moveRobot2(warehouse [][]rune, movement []rune) {
+	pos := findStartPos2(warehouse)
+
+	for _, m := range movement {
+		dir := runeToDirVec(m)
+		lookAhead := mathUtil.AddVector2D(pos, dir)
+
+		if dir.Y != 0 {
+			toMove := make([]mathUtil.Vector2D[int], 1)
+			toMove[0] = mathUtil.AddVector2D(pos, dir)
+			lookAheads := make([]mathUtil.Vector2D[int], 1)
+			nextLookAheads := make([]mathUtil.Vector2D[int], 0)
+			lookAheads[0] = lookAhead
+			moved := true
+			isAnyBox := true
+
+			for isAnyBox && moved {
+				isAnyBox = false
+				for _, lA := range lookAheads {
+					if warehouse[lookAhead.Y][lookAhead.X] == '[' {
+						nextLookAheads = append(nextLookAheads, mathUtil.AddVector2D(lA, dir))
+						nextLookAheads = append(nextLookAheads, mathUtil.AddVector2D(mathUtil.AddVector2D(lA, mathUtil.Vector2D[int]{1, 0}), dir))
+						isAnyBox = true
+					} else if warehouse[lookAhead.Y][lookAhead.X] == ']' {
+						nextLookAheads = append(nextLookAheads, mathUtil.AddVector2D(lA, dir))
+						nextLookAheads = append(nextLookAheads, mathUtil.AddVector2D(mathUtil.AddVector2D(lA, mathUtil.Vector2D[int]{-1, 0}), dir))
+						isAnyBox = true
+					} else if warehouse[lookAhead.Y][lookAhead.X] == '#' {
+						moved = false
+					}
+				}
+				toMove = append(toMove, nextLookAheads...)
+				lookAheads = nextLookAheads
+				nextLookAheads = make([]mathUtil.Vector2D[int], 0)
+			}
+			if !moved {
+				continue
+			}
+			toMove = mathUtil.Distinct(toMove)
+			fmt.Println(len(toMove))
+			for i := len(toMove) - 1; i >= 0; i-- {
+				v := toMove[i]
+				moveFrom := mathUtil.SubVector2D(v, dir)
+				toPlace := warehouse[moveFrom.Y][moveFrom.X]
+				warehouse[v.Y][v.X] = toPlace
+				warehouse[moveFrom.Y][moveFrom.X] = '.'
+			}
+
+			pos = mathUtil.AddVector2D(pos, dir)
+			continue
+		}
+
+		boxesToMove := 0
+
+		for warehouse[lookAhead.Y][lookAhead.X] == ']' || warehouse[lookAhead.Y][lookAhead.X] == '[' {
+			lookAhead = mathUtil.AddVector2D(lookAhead, dir)
+			boxesToMove++
+		}
+
+		if warehouse[lookAhead.Y][lookAhead.X] == '#' {
+			continue
+		}
+		behind := mathUtil.SubVector2D(lookAhead, dir)
+		for range boxesToMove {
+			warehouse[lookAhead.Y][lookAhead.X] = warehouse[behind.Y][behind.X]
+			warehouse[behind.Y][behind.X] = '.'
+
+			lookAhead = mathUtil.SubVector2D(lookAhead, dir)
+			behind = mathUtil.SubVector2D(lookAhead, dir)
+		}
+		warehouse[lookAhead.Y][lookAhead.X] = '@'
+		warehouse[behind.Y][behind.X] = '.'
+		pos = lookAhead
+	}
 }
 
 func findStartPos(grid map[mathUtil.Vector2D[int]]rune) mathUtil.Vector2D[int] {
@@ -286,23 +344,22 @@ func moveAll(grid map[mathUtil.Vector2D[int]]rune, moves []rune) map[mathUtil.Ve
 	return grid
 }
 
-func moveAll2(grid map[mathUtil.Vector2D[int]]rune, moves []rune) map[mathUtil.Vector2D[int]]rune {
-	pos := findStartPos(grid)
-	printGrid(grid)
-	for i := 0; i < len(moves); i++ {
-		move2(grid, grid[pos], &pos, moves[i])
-		printGrid(grid)
+func getBoxDistance2(warehouse [][]rune) int {
+	sum := 0
+	for y, l := range warehouse {
+		for x, r := range l {
+			if r == '[' {
+				sum += 100*y + x
+			}
+		}
 	}
-	printGrid(grid)
-	return grid
+	return sum
 }
 
 func SolutionDay15() {
-	_, moves := readFile("./Day15/Day15Test.txt")
-	/*fmt.Println(moves)
+	grid, moves := readFile("./Day15/Day15Test.txt")
+	fmt.Println(moves)
 	fmt.Println(grid)
 	grid = moveAll(grid, moves)
-	fmt.Printf("Solution Day15 Part 1: %d\n", sumBoxes(grid))*/
-	grid2, _ := readFile2("./Day15/Day15Test.txt")
-	grid2 = moveAll2(grid2, moves)
+	fmt.Printf("Solution Day15 Part 1: %d\n", sumBoxes(grid))
 }

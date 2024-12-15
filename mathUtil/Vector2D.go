@@ -1,5 +1,7 @@
 package mathUtil
 
+import "slices"
+
 type Number interface {
 	int | int32 | int64 | float32 | float64
 }
@@ -49,4 +51,14 @@ func (vec *Vector2D[T]) ConvertToInt() (Vector2D[int], error) {
 		return Vector2D[int]{}, errY
 	}
 	return Vector2D[int]{X: numX, Y: numY}, nil
+}
+
+func Distinct(arr []Vector2D[int]) []Vector2D[int] {
+	newArr := make([]Vector2D[int], 0)
+	for _, val := range arr {
+		if !slices.Contains(newArr, val) {
+			newArr = append(newArr, val)
+		}
+	}
+	return newArr
 }
