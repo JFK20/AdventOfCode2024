@@ -62,6 +62,17 @@ func At(grid [][]rune, position mathUtil.Vector2D[int]) rune {
 	return grid[position.Y][position.X]
 }
 
+func checkRotation(vorLetzte, letzte, current mathUtil.Vector2D[int]) bool {
+	dir1 := mathUtil.Vector2D[int]{X: letzte.X - vorLetzte.X, Y: letzte.Y - vorLetzte.Y}
+	dir2 := mathUtil.Vector2D[int]{X: current.X - letzte.X, Y: current.Y - letzte.Y}
+
+	// Check orthogonality using dot product
+	dotProduct := dir1.X*dir2.X + dir1.Y*dir2.Y
+
+	// If dot product is zero, the vectors are orthogonal (90 degrees)
+	return dotProduct == 0
+}
+
 func dijkstraShortestPath(grid [][]rune) []mathUtil.Vector2D[int] {
 	// Find start and end coordinates
 	start := findCoordinate(grid, 'S')
@@ -101,6 +112,10 @@ func dijkstraShortestPath(grid [][]rune) []mathUtil.Vector2D[int] {
 			break
 		}
 
+		//last to values
+		vorLetztePos := mathUtil.Vector2D[int]{X: -1, Y: -1}
+		letztePos := mathUtil.Vector2D[int]{X: -1, Y: -1}
+
 		// Explore neighbors
 		for _, neighbour := range current.GetAllNeighbours() {
 			// Skip invalid moves
@@ -108,8 +123,15 @@ func dijkstraShortestPath(grid [][]rune) []mathUtil.Vector2D[int] {
 				continue
 			}
 
-			// Calculate new distance (assuming each move costs 1)
-			newDistance := distances[current] + 1
+			vorLetztePos = letztePos
+			letztePos = current
+			newDistance := distances[current]
+			if checkRotation(vorLetztePos, letztePos, current) {
+				newDistance += 1000
+			} else {
+				// Calculate new distance (assuming each move costs 1)
+				newDistance += 1
+			}
 
 			// Update if new path is shorter
 			if newDistance < distances[neighbour] {
